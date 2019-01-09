@@ -1,0 +1,9 @@
+{
+    "time_limit": 0.1,
+    "rtl_ids": [
+        "<id-number_1>",
+        "<id-number_2>"
+    ],
+    "target_ip": "<target_ip_address>",
+    "target_port": "<target_port_number>"
+}

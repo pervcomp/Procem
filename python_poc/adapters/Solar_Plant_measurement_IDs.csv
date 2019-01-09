@@ -1,0 +1,4 @@
+rtl_id;registers;type;name;path;unit;count;signed;wordorder;byteorder;datatype;decimals;NaN_hex;read_once;secondary;iot_ticket;inverter;ip
+<rtl_id-number>;<start_register>;<register_type>;<iot-ticket_name>;<iot-ticket_path>;<unit>;<how_many_registers>;<is_signed>;<word_order>;<byte_order>;<iot-ticket_datatype>;<how_many_decimals>;<nan_value>;<read_only_once>;<has_secondary_importance>;<send_to_iot-ticket>;<inverter_id-number>;<inverter_ip_address>
+12001;20001;input;Inverter01_P;/Inverter01/Power;W;2;y;big;big;long;0;0x80000000;;;x;1;127.0.0.1
+12002;21115;input;Inverter02_DailyYield;/Inverter02/Yield;kWh;2;n;big;big;long;0;0xFFFFFFFF;;;x;2;127.0.0.1

@@ -1,0 +1,7 @@
+{
+    "rtl_host": "127.0.0.1",
+    "rtl_port": 6667,
+    "delay": 20,
+    "gasLimit": 2000000,
+    "gasPrice": 20000000000
+}

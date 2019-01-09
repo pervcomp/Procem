@@ -1,0 +1,39 @@
+{
+   "databases": {
+        "1": {
+            "address": "<database_address>",
+            "port": "<database_port_number>",
+            "name": "<database_name>",
+            "username": "<database_username>",
+            "password": "<database_user_password>",
+            "time_offset_s": 2980.29,
+            "time_offset_check": true,
+            "time_offset_parameters": {
+                "time_check_table": "<database_table_name>",
+                "init_rounds": 5,
+                "init_check_s": 1.0,
+                "small_check_s": 0.047,
+                "round_check_s": 0.189,
+                "offset_growth_per_day_s": 0.250
+            },
+            "tables": {
+                "<database_table_name>": {
+                    "interval_ms": 950,
+                    "delay_ms": 10000,
+                    "time_field": "time"
+                }
+            }
+        }
+    },
+    "csv_header": {
+        "database_id": "database_number",
+        "table": "table",
+        "rtl_id": "rtl_id",
+        "field": "field",
+        "datatype": "datatype",
+        "unit": "unit",
+        "name": "name",
+        "path": "path",
+        "iot_ticket": "iot_ticket"
+   }
+}

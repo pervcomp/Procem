@@ -1,0 +1,16 @@
+{
+    "Nord Pool": {
+        "configuration": "NordPool",
+        "verbose": 1,
+        "currency": "EUR",
+        "areas": [
+            "FI"
+        ],
+        "time_interval_s": 86400,
+        "time_interval_min_s": 600,
+        "rtl_id_base": 26000,
+        "iot_ticket_path_base": "/NordPool/HourData/{area_long:}/Price",
+        "iot_ticket_name_base": "NordPool_Day-ahead_{area:}",
+        "description": "Electricity Spot Price for {area_long:}"
+    }
+}

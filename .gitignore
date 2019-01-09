@@ -1,0 +1,7 @@
+*/__pycache__/*
+python_poc/adapters/__pycache__/*.pyc
+python_poc/utils/__pycache__/*.pyc
+*.env
+
+# ignore Visual Studio Code files
+.vscode/*

@@ -1,0 +1,48 @@
+{
+    "model_name": "modbus_ISS_model",
+    "devices": {
+        "1": {
+            "ip": "<ip_address_1>",
+            "port": "<port_number_1>",
+            "unit_id": "<unit_id_1>",
+            "interval_ms": 30000,
+            "delay_ms": 100,
+            "max_groups": 500,
+            "source_ip": "<source_ip_address>",
+            "source_port": 0,
+            "max_group_size": 8
+        },
+        "2": {
+            "ip": "<ip_address_2>",
+            "port": "<port_number_2>",
+            "unit_id": "<unit_id_2>",
+            "interval_ms": 30000,
+            "delay_ms": 100,
+            "max_groups": 500,
+            "source_ip": "<source_ip_address>",
+            "source_port": 0,
+            "max_group_size": 8
+        }
+    },
+    "csv_header": {
+       "device_id": "device_id",
+       "rtl_id": "rtl_id",
+       "register_id": "registers",
+       "register_type": "type",
+       "name": "name",
+       "path": "path",
+       "unit": "unit_by manufacturer",
+       "datatype": "iott_datatype",
+       "count": "count",
+       "signed": "signed",
+       "wordorder": "wordorder",
+       "byteorder": "byteorder",
+       "modbus_datatype": "datatype",
+       "NaN": "NaN_hex",
+       "read_once": "read_once",
+       "secondary": "secondary",
+       "confidential": "confidential",
+       "iot_ticket": "iot_ticket",
+       "decimals": "decimals"
+   }
+}

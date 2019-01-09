@@ -1,0 +1,8 @@
+{
+    "Fingrid": {
+        "configuration": "Fingrid",
+        "verbose": 500,
+        "csv_filename": "Fingrid_IDs.csv",
+        "min_waiting_time_s": 20
+    }
+}

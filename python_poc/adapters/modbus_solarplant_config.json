@@ -1,0 +1,40 @@
+{
+    "model_name": "modbus_solarplant_model",
+    "devices": {
+        "1": {
+            "ip": "<ip_address_1>",
+            "unit_id": "<unit_id_1>",
+            "interval_ms": 1000,
+            "delay_ms": 10,
+            "max_groups": 5,
+            "max_group_size": 120
+        },
+        "2": {
+            "ip": "<ip_address_2>",
+            "unit_id": "<unit_id_2>",
+            "interval_ms": 1000,
+            "delay_ms": 10,
+            "max_groups": 5,
+            "max_group_size": 120
+        }
+    },
+    "csv_header": {
+       "device_id": "inverter",
+       "rtl_id": "rtl_id",
+       "register_id": "registers",
+       "register_type": "type",
+       "name": "name",
+       "path": "path",
+       "unit": "unit",
+       "datatype": "datatype",
+       "count": "count",
+       "signed": "signed",
+       "wordorder": "wordorder",
+       "byteorder": "byteorder",
+       "decimals": "decimals",
+       "NaN": "NaN_hex",
+       "iot_ticket": "iot_ticket",
+       "read_once": "read_once",
+       "secondary": "secondary"
+   }
+}

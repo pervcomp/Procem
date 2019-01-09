@@ -1,0 +1,44 @@
+{
+    "HIRLAM": {
+        "configuration": "HIRLAM",
+        "verbose": 1,
+        "latitude": 61.4498,
+        "longitude": 23.8592,
+        "start_hour": 0,
+        "end_hour": 54,
+        "time_step_minute": 10,
+        "fields": [
+            "geopheight",
+            "temperature",
+            "pressure",
+            "humidity",
+            "winddirection",
+            "windspeedms",
+            "windums",
+            "windvms",
+            "maximumwind",
+            "windgust",
+            "dewpoint",
+            "weathersymbol3",
+            "totalcloudcover",
+            "lowcloudcover",
+            "mediumcloudcover",
+            "highcloudcover",
+            "precipitation1h",
+            "precipitationamount",
+            "radiationglobalaccumulation",
+            "radiationlwaccumulation",
+            "radiationnetsurfacelwaccumulation",
+            "radiationnetsurfaceswaccumulation",
+            "radiationdiffuseaccumulation",
+            "landseamask"
+        ],
+
+        "time_interval_s": 21600,
+        "time_interval_min_s": 900,
+        "rtl_id_base": 28000,
+        "iot_ticket_path_base": "/Weather/Prediction/HIRLAM/{base:}",
+        "iot_ticket_name_base": "HIRLAM_TUT_{name:}",
+        "description": "{desc:} prediction"
+    }
+}

@@ -1,0 +1,12 @@
+{
+   "csv_header": {
+       "device": "serial_number",
+       "measurementName": "laatuvahti_name",
+       "name": "name",
+       "path": "path",
+       "rtl_id": "rtl_id",
+       "ticket": "iot_ticket"
+   },
+   "ignore_mark": "vara",
+   "ticket_mark": "x"
+}

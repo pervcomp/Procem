@@ -1,0 +1,9 @@
+{
+    "name": "solarplant",
+    "id": 24444,
+    "producer": true,
+    "registered": true,
+    "address_index": 0,
+    "web3_host": "127.0.0.1",
+    "web3_port": 8545
+}

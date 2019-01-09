@@ -1,0 +1,7 @@
+node_modules
+# truffle's build directory
+build
+# eclipse's project configuration
+.project
+# geth's data directory
+chaindata/geth

@@ -1,0 +1,20 @@
+{
+    "username": "<iot-ticket_username>",
+    "password": "<iot-ticket_password>",
+    "baseurl": "<iot-ticket_rest_api_address>",
+    "deviceid": "<iot-ticket_device_id>",
+    "iotticket-buffer-size": 10,
+    "iotticket-max-packet-size": 500,
+    "iotticket-minimum-delay-s": 0.5,
+    "iotticket-maximum-retries": 3,
+    "iotticket-max-data-cycles": 1,
+    "procem-iotticket-workers": 5,
+    "db-queue-size": 65536,
+    "iotticket-queue-size": 65536,
+    "db_type": "csv",
+    "ids_for_battery": [],
+    "db_storage_on": true,
+    "iotticket_send_on": true,
+    "battery_demo_on": false,
+    "present_value_count": 1
+}

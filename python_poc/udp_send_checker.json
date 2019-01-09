@@ -1,0 +1,4 @@
+{
+    "resend_interval_s": 600,
+    "adapter_folder": "adapters"
+}

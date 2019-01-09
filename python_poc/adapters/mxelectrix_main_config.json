@@ -1,0 +1,6 @@
+{
+    "mxelectrix_receiver_ip": "<laatuvahti_ip_address>",
+    "mxelectrix_receiver_port": "<laatuvahti_port_number>",
+    "model_config_file": "mxelectrix_model_config.json",
+    "measurement_id_file": "Laatuvahti_measurement_IDs.csv"
+}

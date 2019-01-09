@@ -1,0 +1,4 @@
+rtl_id;name;path;unit;datatype;confidential;iot_ticket;source
+<rtl_id-number>;<iot-ticket_name>;<iot-ticket_path>;<iot-ticket_unit>;<iot-ticket_datatype>;<confidential_info>;<send_to_iot-ticket>;<source_description>
+12001;Outside_temperature;/Weather/Temperature;C;double;;x;Weather station
+13001;Main_current;/Electricity/Current;A;double;;x;ISS

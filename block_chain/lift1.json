@@ -1,0 +1,9 @@
+{
+    "name": "elevator1",
+    "id": 22944,
+    "producer": false,
+    "registered": false,
+    "address_index": 1,
+    "web3_host": "127.0.0.1",
+    "web3_port": 8545
+}

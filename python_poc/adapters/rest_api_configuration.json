@@ -1,0 +1,167 @@
+{
+    "NordPool": {
+        "worker": {
+            "module": "nordpool_api_adapter",
+            "name": "Nordpool"
+        },
+        "write_csv": true,
+        "method": "GET",
+        "csv_filename": "NordPool_IDs.csv",
+        "host": "https://www.nordpoolgroup.com/api/marketdata/page/10",
+        "authentication": {
+            "type": "none"
+        },
+        "datetime_format": "%d-%m-%Y",
+        "result_datetime_format": "%Y-%m-%dT%H:%M:%S.%f",
+        "query_params": {
+            "currency": "{currency:}",
+            "endDate": "{date:}"
+        },
+        "dynamic_params": [
+            {
+                "name": "currency",
+                "default": "EUR"
+            },
+            {
+                "name": "date",
+                "type": "timestamp"
+            }
+        ],
+        "long_names": {
+            "FI": "Finland"
+        }
+    },
+    "Fingrid": {
+        "worker": {
+            "module": "fingrid_api_adapter",
+            "name": "FingridCollection"
+        },
+        "method": "GET",
+        "host": "https://api.fingrid.fi/v1/variable/{variable_id:}/events/json",
+        "authentication": {
+            "type": "header",
+            "params": [
+                {
+                    "field": "x-api-key",
+                    "value": "<api-key_for_fingrid>"
+                }
+            ]
+        },
+        "datetime_format": "%Y-%m-%dT%H:%M:%SZ",
+        "result_datetime_format": "%Y-%m-%dT%H:%M:%S%z",
+        "query_params": {
+            "start_time": "{start_time}",
+            "end_time": "{end_time}"
+        },
+        "dynamic_params": [
+            {
+                "name": "variable_id"
+            },
+            {
+                "name": "start_time",
+                "type": "timestamp"
+            },
+            {
+                "name": "end_time",
+                "type": "timestamp"
+            }
+        ],
+        "csv_header": {
+            "rtl_id": "rtl id",
+            "variable_id": "variable id",
+            "datatype": "datatype",
+            "unit": "unit",
+            "query_interval": "query interval (s)",
+            "query_interval_min": "minimum query interval (s)",
+            "store_interval": "store interval (s)",
+            "is_prediction": "is prediction",
+            "prediction_length": "prediction length (s)",
+            "name": "IoT-Ticket name",
+            "path": "IoT-Ticket path",
+            "confidential": "confidential"
+        }
+    },
+    "HIRLAM": {
+        "worker": {
+            "module": "hirlam_api_adapter",
+            "name": "Hirlam"
+        },
+        "write_csv": true,
+        "csv_filename": "Hirlam_IDs.csv",
+        "method": "GET",
+        "host": "http://data.fmi.fi/fmi-apikey/{api_key:}/wfs",
+        "authentication": {
+            "type": "address",
+            "api_key": "<api-key_for_hirlam>"
+        },
+        "datetime_format": "%Y-%m-%dT%H:%M:%SZ",
+        "query_params": {
+            "request": "getFeature",
+            "storedquery_id": "fmi::forecast::hirlam::surface::point::multipointcoverage",
+            "latlon": "{latitude:},{longitude:}",
+            "starttime": "{start_time:}",
+            "endtime": "{end_time:}",
+            "parameters": "{fields:}",
+            "timestep": "{time_step:}"
+        },
+        "dynamic_params": [
+            {
+                "name": "latitude",
+                "default": 61.4495137
+            },
+            {
+                "name": "longitude",
+                "default": 23.8597759
+            },
+            {
+                "name": "start_time",
+                "type": "timestamp"
+            },
+            {
+                "name": "end_time",
+                "type": "timestamp"
+            },
+            {
+                "name": "fields",
+                "type": "list",
+                "element_separator": ",",
+                "default": []
+            },
+            {
+                "name": "time_step",
+                "default": 60
+            }
+        ],
+        "replace_unit": {
+            "degC": "C",
+            "deg": "degree",
+            "(0-1)": "null"
+        },
+        "replace_name": {
+            "geopheight": "GeopHeight",
+            "temperature": "Temperature",
+            "pressure": "Pressure",
+            "humidity": "Humidity",
+            "winddirection": "WindDirection",
+            "windspeedms": "WindSpeedMs",
+            "windums": "WindUMs",
+            "windvms": "WindVMs",
+            "maximumwind": "MaximumWind",
+            "windgust": "WindGust",
+            "dewpoint": "DewPoint",
+            "weathersymbol3": "WeatherSymbol",
+            "totalcloudcover": "TotalCloudCover",
+            "lowcloudcover": "LowCloudCover",
+            "mediumcloudcover": "MediumCloudCover",
+            "highcloudcover": "HighCloudCover",
+            "precipitation1h": "Precipitation1h",
+            "precipitationamount": "PrecipitationAmount",
+            "radiationglobalaccumulation": "RadiationGlobalAccumulation",
+            "radiationlwaccumulation": "RadiationLwAccumulation",
+            "radiationnetsurfacelwaccumulation": "RadiationNetSurfaceLwAccumulation",
+            "radiationnetsurfaceswaccumulation": "RadiationNetSurfaceSwAccumulation",
+            "radiationdiffuseaccumulation": "RadiationDiffuseAccumulation",
+            "landseamask": "LandSeaMask"
+        }
+    }
+}

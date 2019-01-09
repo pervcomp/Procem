@@ -1,0 +1,19 @@
+{
+    "date_format": "{year:0>4}-{month:0>2}-{day:0>2}",
+    "data_filename_end": "_procem.csv",
+    "counter_filename_end": "_data_counter.csv",
+    "counter_delimiter": "\t",
+    "local_file_permissions": "=644",
+    "remote_file_permissions": "=400",
+    "backup_hour": 1,
+    "backup_days_cwd": 1,
+    "backup_days_backup_dir": 7,
+    "compression_command": "7z a -t7z -m0=lzma2 -mx=9",
+    "compressed_file_extension": "7z",
+    "compression_success_message": "Everything is Ok",
+    "local_data_directory": "<local_directory_for_data>",
+    "local_counter_directory": "<local_directory_for_counter_files>",
+    "remote_backup_server": "<remote_server_address>",
+    "remote_data_directory": "<remote_directory_for_data>",
+    "remote_counter_directory": "<remote_directory_for_counter_files>"
+}

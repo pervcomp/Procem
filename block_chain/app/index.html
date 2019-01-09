@@ -1,0 +1,56 @@
+<!-- Copyright (c) TUT Tampere University of Technology 2015-2018.
+This software has been developed in Procem-project funded by Business Finland.
+This code is licensed under the MIT license.
+See the LICENSE.txt in the project root for the license terms.
+
+Main author(s): Ville Heikkila, Otto Hylli, Pekka Itavuo,
+                Teemu Laukkarinen ja Ulla-Talvikki Virta
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Google analytics -->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126542273-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-126542273-1');
+</script>
+
+  <title>ProCem SolarUsage monitor</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <!-- load SolarUsage monitor code -->
+  <script src="./app.js"></script>
+</head>
+<body>
+<h1>Kampusareena Blockchain Demonstration: SolarUsage Smart Contract Monitor</h1>
+
+<!-- show contract status here not connected, everybody not registered, everybody registered monitoring events-->
+<p role="status">Status: <span id="status" >not connected to contract</span></p>
+
+<h2>Participants</h2>
+
+<!--  the time everybody registered will be shown here  -->
+<p>The table contains energy totals in kWh since everybody registered <span id="registered"></span></p>
+
+<table id="participants"></table>
+
+<h2>Smart Contract Events from Blockchain</h2>
+
+<ul id="events"></ul>
+
+<h2>About this demo</h2>
+
+<p>This demo was created in the
+<a href="http://www.senecc.fi/projects/procem-2">Social Energy - Prosumer Centric Energy Ecosystem (ProCem)</a>
+research project of
+<a href="http://www.tut.fi/">Tampere University of Technology</a>.
+Its purpose was to gain practical experience in working with blockchain technology and give the project group more concrete understanding about the technology. It is based on real time energy measurements from the university's
+<a href="http://www.tut.fi/en/kampusareena/index.htm">Kampusareena</a>
+building. It is based on  an imaginary scenario where the energy produced by Kampusareena's solar power plant is used locally only by the building's two elevators.
+The demo then keeps a record of how much energy has been produced and consumed and shares it equally between the consumers. This record keeping happens every minute.</p>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+    "id-configuration-file": "Procem_IDs.csv",
+    "id-delimiter": ";",
+    "data-folder": "<local_directory_for_data>",
+    "remote-server": "<remote_server_address>",
+    "remote-folder": "<remote_directory_for_data>",
+    "data-filename-format": "{year:0>4}-{month:0>2}-{day:0>2}_procem",
+    "data-filename-suffix": ".csv",
+    "data-compressed-suffix": ".7z",
+    "data-delimiter": "\t",
+    "username": "<iot-ticket_username>",
+    "password": "<iot-ticket_password>",
+    "base-url": "<iot-ticket_rest_api_address>",
+    "deviceid": "<iot-ticket_device_id>",
+    "iotticket-max-packet-size": 500,
+    "iotticket-minimum-delay-s": 1.0,
+    "iotticket-maximum-retries": 5,
+    "iotticket-queue-size": 250000,
+    "iotticket-buffer-size": 200000
+}

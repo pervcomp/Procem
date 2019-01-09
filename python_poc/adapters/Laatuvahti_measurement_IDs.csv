@@ -1,0 +1,4 @@
+rtl_id;serial_number;laatuvahti_name;name;path;unit;iot_ticket;active
+<rtl_id-number>;<laatuvahti_device_id>;<laatuvahti_measurement_name>;<iot-ticket_name>;<iot-ticket_path>;<unit>;<send_to_iot-ticket>;<is_active>
+15001;0123456789;freq;LV3_Freq;/Electricity/Frequency;Hz;x;x
+15002;0123456789;P;LV3_P;/Electricity/Power;W;x;x

@@ -1,0 +1,4 @@
+rtl_id;registers;type;name;path;unit_by manufacturer;count;signed;wordorder;byteorder;datatype;decimals;iott_datatype;NaN_hex;read_once;secondary;confidential;iot_ticket;device_id;ip;bus_address
+<rtl_id-number>;<start_register>;<register_type>;<iot-ticket_name>;<iot-ticket_path>;<unit>;<number_of_registers>;<is_signed>;<word_order>;<byte_order>;<modbus_datatype>;<how_many_decimals>;<iot-ticket_datatype>;<nan_value>;<read_only_once>;<has_secondary_importance>;<confidential_info>;<send_to_iot_ticket>;<device_id-number>;<ip_address>;<modbus_unit_id>
+3001;4001;holding;ISS_Current;/ISS/Current;A;2;y;big;little;Float32;;float;0x00000000;;;;x;1;127.0.0.1;1
+3002;4221;holding;ISS_Energy;/ISS/Energy;Wh;4;n;big;big;Int64;;int;0x00000000;;;;x;1;127.0.0.1;1

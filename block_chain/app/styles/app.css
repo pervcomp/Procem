@@ -1,0 +1,54 @@
+/* Copyright (c) TUT Tampere University of Technology 2015-2018.
+ * This software has been developed in Procem-project funded by Business Finland.
+ * This code is licensed under the MIT license.
+ * See the LICENSE.txt in the project root for the license terms.
+ *
+ * Main author(s): Ville Heikkila, Otto Hylli, Pekka Itavuo,
+ *                 Teemu Laukkarinen ja Ulla-Talvikki Virta
+ */
+
+body
+{
+  background-color:black;
+  color:white;
+  padding-left:15%;
+  padding-right:15%;
+  font-size:20pt;
+  font-family:"Times New Roman", Serif;
+}
+
+h1, h2
+{
+  font-weight:bold;
+}
+
+h1
+{
+  text-align:center;
+  border-bottom:3px solid white;
+  padding-bottom:5px;
+  font-size:30pt;
+}
+
+h2
+{
+  font-size:24pt;
+}
+
+#participants {
+	width: 80%;
+}
+
+.data {
+  text-align:center;
+  background-color: #303030;
+}
+
+#events {
+  background-color: #303030;
+}
+
+a
+{
+	color:yellow;
+}

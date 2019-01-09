@@ -1,0 +1,89 @@
+{
+    "wait_time": 3600,
+    "components": [
+        {
+            "screen_name": "procem_rtl",
+            "window_name": "rtl",
+            "working_directory": ".",
+            "start_command": "python3 -u procem_rtl.py rtl_configuration.json",
+            "active": true
+        },
+        {
+            "screen_name": "procem_rtl",
+            "window_name": "backup",
+            "working_directory": ".",
+            "start_command": "python3 -u backup_procem_data.py backup_procem_data.json",
+            "active": true
+        },
+        {
+            "screen_name": "procem_rtl",
+            "window_name": "udp",
+            "working_directory": ".",
+            "start_command": "python3 -u udp_send_checker.py udp_send_checker.json",
+            "active": true
+        },
+        {
+            "screen_name": "procem_rtl",
+            "window_name": "battery",
+            "working_directory": ".",
+            "start_command": "python3 -u battery_data.py battery_data.json",
+            "active": false
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "weatherstation",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u postgres_generic_adapter.py postgres_weatherstation_config.json Wheather_Station_measurement_IDs.csv",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "iss",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u modbus_generic_adapter.py modbus_ISS_config.json ISS_measurement_IDs.csv",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "solarplant",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u modbus_generic_adapter.py modbus_solarplant_config.json Solar_Plant_measurement_IDs.csv",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "bacnet",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u bacnet_adapter.py bacnet_config.json",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "laatuvahti",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u mxelectrix_adapter.py mxelectrix_main_config.json",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "nordpool",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u rest_generic_adapter.py nordpool_configuration.json",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "fingrid",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u rest_generic_adapter.py fingrid_configuration.json",
+            "active": true
+        },
+        {
+            "screen_name": "adapters",
+            "window_name": "hirlam",
+            "working_directory": "./adapters",
+            "start_command": "python3 -u rest_generic_adapter.py hirlam_configuration.json",
+            "active": true
+        }
+    ]
+}

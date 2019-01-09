@@ -1,0 +1,4 @@
+rtl_id;table;field;datatype;unit;name;path;iot_ticket
+<rtl_id-number>;<table_name>;<column_name>;<iot-ticket_datatype>;<iot-ticket_unit>;<iot-ticket_name>;<iot-ticket_path>;<send_to_iot-ticket>
+22001;weather;temperature;float;C;temperature;/Weather/Temperature;x
+22002;weather;wind_speed;float;m/s;wind_speed;/Weather/Wind;x
