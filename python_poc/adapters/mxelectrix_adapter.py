@@ -71,6 +71,18 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 # This assumes that the measurement device is set to set_unlocked=Y, meaning no encryption
 # TODO: AES encryption of Xport should be taken into use to add security
 class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
+    TIMEOUT_SECONDS = 45
+    MAX_TRIES_BEFORE_RESTART = 80
+    RESTARTED_ID = "restarted"
+
+    """TCP handler with a dictionary holding opening tries information."""
+    def __init__(self, dictionary, *args, **kwargs):
+        self.opening_tries = dictionary
+        if self.RESTARTED_ID not in self.opening_tries:
+            self.opening_tries[self.RESTARTED_ID] = list()
+
+        socketserver.StreamRequestHandler.__init__(self, *args, **kwargs)
+
     def readLine(self):
         """Reads a line from the stream:"""
         return self.rfile.readline().strip().decode("utf-8")
@@ -81,19 +93,25 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
 
     def handle(self):
         try:
-            # this will send an exception if no response in 45 seconds
-            self.request.settimeout(45)
+            # this will send an exception if no response in TIMEOUT_SECONDS seconds
+            self.request.settimeout(self.TIMEOUT_SECONDS)
 
             self.MXElectrixHandle()
         except socket.timeout:
             print(common_utils.getTimeString(), "ERROR: The socket timed out for", self.client_address[0])
             self.writeCommand("esc")
             self.writeCommand("close")
+            
+            self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
+            print(self.opening_tries)
 
         except Exception as error:
             print(common_utils.getTimeString(), "ERROR:", self.client_address[0], error)
             self.writeCommand("esc")
             self.writeCommand("close")
+
+            self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
+            print(self.opening_tries)
 
     def MXElectrixHandle(self):
         print(common_utils.getTimeString(), "INFO: A new TCP connection from " + self.client_address[0])
@@ -110,12 +128,30 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
                       self.client_address[0])
                 self.writeCommand("esc")
                 self.writeCommand("close")
+
+                self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
+                print(self.opening_tries)
                 return
             currentLine = self.readLine()
 
         # Open the connection by sending "open"-command
         print(common_utils.getTimeString(), "INFO: Opening connection to", self.client_address[0])
         self.writeCommand("open")
+
+        # print the number of opening tries
+        print(common_utils.getTimeString(), "INFO: Connection opened to", self.client_address[0], "with",
+              self.opening_tries.get(self.client_address[0], 0), "failed tries")
+        # restart the device if opening the connection took too many times
+        # (restart can only be done after opening the connection)
+        # (no restart is done if the restarted flag is already up for the ip)
+        if (self.client_address[0] not in self.opening_tries.get(self.RESTARTED_ID, []) and 
+                self.opening_tries.get(self.client_address[0], 0) > self.MAX_TRIES_BEFORE_RESTART):
+            self.writeCommand("restart")
+            print(common_utils.getTimeString(), "INFO: Restarting", self.client_address[0],
+                  "because too many opening tries")
+            self.opening_tries[self.RESTARTED_ID].append(self.client_address[0])
+            self.opening_tries[self.client_address[0]] = 0
+            return
 
         # Start the stream by sending "get_stream, rations"-command
         print(common_utils.getTimeString(), "INFO: Starting the stream from", self.client_address[0])
@@ -168,11 +204,18 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
                     # slice the date and time away from the data
                     sendDataToProcem(module_id, data[2:], tm)
 
-                    # NOTE: comment the following out if you don't want periodical messages about sent packages
                     cnt += 1
                     if cnt % 3600 == 0:
+                        # NOTE: comment the following out if you don't want periodical messages about sent packages
                         print(common_utils.getTimeString(), "INFO:", self.client_address[0],
                               "has sent", cnt, "packages")
+
+                        # clear the opening tries numbers and the restarted flag for the ip
+                        self.opening_tries[self.client_address[0]] = 0
+                        try:
+                            self.opening_tries[self.RESTARTED_ID].remove(self.client_address[0])
+                        except ValueError:
+                            pass
 
 
 def sendDataToProcem(module_id, data, timestamp):
@@ -202,6 +245,13 @@ def sendDataToProcem(module_id, data, timestamp):
         data_queue.put(newPkt)
 
 
+def handlerFactory(dictionary):
+    """A helper function for creating request handlers with the given dictionary."""
+    def createHandler(*args, **kwargs):
+        return MXElectrixTCPHandler(dictionary, *args, **kwargs)
+    return createHandler
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         main_config_file = sys.argv[1]
@@ -226,13 +276,16 @@ if __name__ == "__main__":
 
     threading.Thread(target=common_utils.procemSendWorker, kwargs={"data_queue": data_queue}).start()
 
+    # a dictionary for holding opening tries information
+    opening_tries = dict()
+
     print(common_utils.getTimeString(), "Starting the server for MXElectrix")
     connection_try_interval = 0.0
     connection_try_increase = 5.0
     server = None
     while server is None:
         try:
-            server = ThreadedTCPServer((MXELECTRIX_RECEIVER_IP, MXELECTRIX_RECEIVER_PORT), MXElectrixTCPHandler)
+            server = ThreadedTCPServer((MXELECTRIX_RECEIVER_IP, MXELECTRIX_RECEIVER_PORT), handlerFactory(opening_tries))
         except:
             connection_try_interval += connection_try_increase
             print(common_utils.getTimeString(), "Connection to server failed. Trying again in",
