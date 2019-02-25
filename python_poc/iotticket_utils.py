@@ -202,17 +202,28 @@ class SimpleIoTTicketClient:
            The jsondata is expected to contain valid data as a list of json objects.
            Using packet_size parameter the data sending can be serialized to smaller packets.
            Using considered_packets (containing packet numbers) only part of the data can be sent."""
-        if packet_size is None:
-            json_packets = [jsondata]
-            considered_packets = set({0})
-        else:
-            json_packets = list(common_utils.chunks(jsondata, packet_size))
-            if considered_packets is None:
-                considered_packets = set(range(len(json_packets)))
+        path_url = self.__base_url + self.writedataresource.format(device_id)
+
+        # the send will be done as one packet
+        if packet_size is None or len(jsondata) <= packet_size:
+            if considered_packets is not None and 0 not in considered_packets:
+                return [None]
+            try:
+                req = requests.post(path_url, json=jsondata, auth=self.__auth)
+                resp = getResponce(req)
+                return [resp]
+
+            except requests.exceptions.RequestException as error:
+                error.responces = [None]
+                raise error
+
+        # the send will be divided into two or more packets
+        json_packets = list(common_utils.chunks(jsondata, packet_size))
+        if considered_packets is None:
+            considered_packets = set(range(len(json_packets)))
 
         responces = []
         try:
-            path_url = self.__base_url + self.writedataresource.format(device_id)
             session = requests.session()
             session.auth = self.__auth
 

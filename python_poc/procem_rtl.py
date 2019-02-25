@@ -70,8 +70,6 @@ IOTTICKET_MAX_DATA_CYCLES = 5
 # How many measurements are packed together when cycling data after failed IoT-Ticket send.
 IOTTICKET_CYCLE_BUFFER_SIZE = 10
 
-IOTTICKET_CYCLE_ATTRIBUTE = "cycle_number"
-
 # The queue sizes for the IoT-Ticket and the local data storage.
 # These could be infinite, but it is good idea to set maximum size to prevent exhaustion in a case of malfunction etc.
 IOTTICKET_QUEUE_SIZE = 1024
@@ -151,9 +149,8 @@ def validationWorker():
             PROCEM_DB_QUEUE.put(getProcemQueueItem(validated_data))
 
         if IOTTICKET_SEND_CHECK:
-            for item in validated_data:
-                item[IOTTICKET_CYCLE_ATTRIBUTE] = 0
-            PROCEM_IOTTICKET_QUEUE.put(getProcemQueueItem(validated_data))
+            # give the data as (item, cycle_number) tuples to the IoT-Ticker sender
+            PROCEM_IOTTICKET_QUEUE.put(getProcemQueueItem([(item, 0) for item in validated_data]))
 
         # update the present value table
         for item in validated_data:
@@ -433,18 +430,17 @@ def procemIOTTicketWorker(iott_c):
 def procemUDPtoIOTTicketList(udpdata, data_info):
     """Transforms and returns the received udpdata to a list of json objects."""
     iott_buffer = []
-    for jsonitem in udpdata:
+    for jsonitem, cycle_number in udpdata:
         # don't send to IoT-Ticket if marked as confidential
         # or if the data has been cycled too many times already
-        if jsonitem.get("secret", False) or jsonitem.get(IOTTICKET_CYCLE_ATTRIBUTE, 0) > IOTTICKET_MAX_DATA_CYCLES:
+        if jsonitem.get("secret", False) or cycle_number > IOTTICKET_MAX_DATA_CYCLES:
             continue
 
         iot_item = {
             "name": jsonitem["name"],
             "path": jsonitem["path"],
             "v": jsonitem["v"],
-            "ts": jsonitem["ts"],
-            IOTTICKET_CYCLE_ATTRIBUTE: jsonitem.get(IOTTICKET_CYCLE_ATTRIBUTE, 0)
+            "ts": jsonitem["ts"]
         }
 
         # for cycled data, attribute id is not set
@@ -461,7 +457,7 @@ def procemUDPtoIOTTicketList(udpdata, data_info):
         iot_item["unit"] = jsonitem["unit"]
         iot_item["type"] = jsonitem["type"]
 
-        iott_buffer.append(iot_item)
+        iott_buffer.append((iot_item, cycle_number))
     return iott_buffer
 
 
@@ -471,13 +467,10 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
     # print(common_utils.getTimeString(), threading.current_thread().name, "started.", len(iott_buffer), "items.",
     #       counter.getValue(), "workers.")
 
+    # data buffer is a list of tuples (ticket_item, cycle_number)
     # sort the data buffer in the hopes of speeding up the transfer
-    iott_buffer.sort(key=lambda x: (x["path"], x["name"], x["ts"]))
-
-    # Create a copied buffer that doesn't have cycle_number attribute for IoT-Ticket sends.
-    clone_buffer = copy.deepcopy(iott_buffer)
-    for item in clone_buffer:
-        item.pop(IOTTICKET_CYCLE_ATTRIBUTE, None)
+    iott_buffer.sort(key=lambda x: (x[0]["path"], x[0]["name"], x[0]["ts"]))
+    iott_data = [item_with_cycle_number[0] for item_with_cycle_number in iott_buffer]
 
     startTime = time.time()
 
@@ -496,7 +489,7 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
 
         try:
             # Use the SimpleIoTTicketClient class to avoid having to use datanodesvalue class
-            responces = iott_c.writeData(PROCEM_DEVICEID, clone_buffer, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
+            responces = iott_c.writeData(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
             # Use the received responces to determine which packets need to be resend and the total for written nodes
             (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
                 responces=responces,
@@ -551,7 +544,6 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
 
     # NOTE: this is not required, but hopefully speeds up the garbage collection
     iott_buffer.clear()
-    clone_buffer.clear()
 
 
 def cycleBadPackets(item_buffer, bad_packets):
@@ -564,15 +556,14 @@ def cycleBadPackets(item_buffer, bad_packets):
             item_list=bad_list,
             buffer_size=IOTTICKET_CYCLE_BUFFER_SIZE,
             item_queue=PROCEM_IOTTICKET_QUEUE,
-            cycle_attr=IOTTICKET_CYCLE_ATTRIBUTE,
             cycle_limit=IOTTICKET_MAX_DATA_CYCLES)
 
     return cycle_count
 
 
-def putItemsToQueue(item_list, buffer_size, item_queue, cycle_attr, cycle_limit):
+def putItemsToQueue(item_list, buffer_size, item_queue, cycle_limit):
     """Puts items to a queue if they have not yet been cycled too many times.
-         item_list = a list of the items
+         item_list = a list of the item tuples (item, cycle_number)
          buffer_size = how many items are grouped together when they are put into the queue
          item_queue = the queue in which the items are added
          cycle_attr = the item attribute that tells how many times the item has been cycled
@@ -581,14 +572,12 @@ def putItemsToQueue(item_list, buffer_size, item_queue, cycle_attr, cycle_limit)
     """
     item_count = 0
     item_buffer = []
-    for item in item_list:
-        cycle_number = item.get(cycle_attr, 0) + 1
+    for item, cycle_number in item_list:
         if cycle_number > cycle_limit:
             # item has been cycled too many times already, just give up on it
             # print(common_utils.getTimeString(), "Giving up on:", item)
             continue
-        item[cycle_attr] = cycle_number
-        item_buffer.append(item)
+        item_buffer.append((item, cycle_number))
         item_count += 1
 
         if len(item_buffer) >= buffer_size:
@@ -762,7 +751,19 @@ if __name__ == "__main__":
     threads.append(tiot)
 
     # for receiving data from the adapter programs
-    srv = common_utils.startUDPserver(handler=ReceivedUDPHandler, ip=PROCEM_SERVER_IP, port=PROCEM_SERVER_PORT)
+    # srv = common_utils.startUDPserver(handler=ReceivedUDPHandler, ip=PROCEM_SERVER_IP, port=PROCEM_SERVER_PORT)
+    print(common_utils.getTimeString(), "Starting the UDP server for Procem RTL")
+    connection_try_interval = 0.0
+    connection_try_increase = 5.0
+    srv = None
+    while srv is None:
+        try:
+            srv = common_utils.startUDPserver(handler=ReceivedUDPHandler, ip=PROCEM_SERVER_IP, port=PROCEM_SERVER_PORT)
+        except:
+            connection_try_interval += connection_try_increase
+            print(common_utils.getTimeString(), "Could not start UDP server. Trying again in",
+                  connection_try_interval, "seconds")
+            time.sleep(connection_try_interval)
 
     while True:
         txt = input("Give command or press enter key to end:\n\r")

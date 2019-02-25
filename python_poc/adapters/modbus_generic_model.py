@@ -177,7 +177,7 @@ class ModbusMeasurementGroup:
 
     @property
     def registers(self):
-        return copy.deepcopy(self.__registers)
+        return self.__registers
 
     def addRegister(self, register_type, start_register, end_register):
         # only add the new register if is of the same type and the count doesn't become too large
@@ -295,15 +295,15 @@ class ModbusDevice:
 
     @property
     def registers(self):
-        return copy.deepcopy(self.__registers)
+        return self.__registers
 
     @property
     def read_once_groups(self):
-        return copy.deepcopy(self.__read_once_groups)
+        return self.__read_once_groups
 
     @property
     def groups(self):
-        return copy.deepcopy(self.__groups)
+        return self.__groups
 
     def addRegister(self, register_id, register_type):
         self.__registers[register_id] = copy.deepcopy(register_type)

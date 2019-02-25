@@ -101,9 +101,9 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
             print(common_utils.getTimeString(), "ERROR: The socket timed out for", self.client_address[0])
             self.writeCommand("esc")
             self.writeCommand("close")
-            
+
             self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
-            print(self.opening_tries)
+            # print(self.opening_tries)
 
         except Exception as error:
             print(common_utils.getTimeString(), "ERROR:", self.client_address[0], error)
@@ -111,7 +111,7 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
             self.writeCommand("close")
 
             self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
-            print(self.opening_tries)
+            # print(self.opening_tries)
 
     def MXElectrixHandle(self):
         print(common_utils.getTimeString(), "INFO: A new TCP connection from " + self.client_address[0])
@@ -130,7 +130,7 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
                 self.writeCommand("close")
 
                 self.opening_tries[self.client_address[0]] = self.opening_tries.get(self.client_address[0], 0) + 1
-                print(self.opening_tries)
+                # print(self.opening_tries)
                 return
             currentLine = self.readLine()
 
@@ -144,7 +144,7 @@ class MXElectrixTCPHandler(socketserver.StreamRequestHandler):
         # restart the device if opening the connection took too many times
         # (restart can only be done after opening the connection)
         # (no restart is done if the restarted flag is already up for the ip)
-        if (self.client_address[0] not in self.opening_tries.get(self.RESTARTED_ID, []) and 
+        if (self.client_address[0] not in self.opening_tries.get(self.RESTARTED_ID, []) and
                 self.opening_tries.get(self.client_address[0], 0) > self.MAX_TRIES_BEFORE_RESTART):
             self.writeCommand("restart")
             print(common_utils.getTimeString(), "INFO: Restarting", self.client_address[0],
@@ -285,7 +285,8 @@ if __name__ == "__main__":
     server = None
     while server is None:
         try:
-            server = ThreadedTCPServer((MXELECTRIX_RECEIVER_IP, MXELECTRIX_RECEIVER_PORT), handlerFactory(opening_tries))
+            server = ThreadedTCPServer((MXELECTRIX_RECEIVER_IP, MXELECTRIX_RECEIVER_PORT),
+                                       handlerFactory(opening_tries))
         except:
             connection_try_interval += connection_try_increase
             print(common_utils.getTimeString(), "Connection to server failed. Trying again in",
