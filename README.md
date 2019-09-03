@@ -2,10 +2,11 @@
 
 This repository contains the code and some of the documentation produced in the Social Energy – Prosumer Centric Energy Ecosystem (ProCem) project at the Tampere University of Technology.
 
-For a description of the project, see: [http://www.senecc.fi/projects/procem-2]()
+For a description of the project, see: [http://www.senecc.fi/projects/procem-2](http://www.senecc.fi/projects/procem-2)
 
 The final report (in Finnish) of the project is also available from the given link.
 This repository contains the folders:
+
 - [documents](documents)
 
      contains documentation (in Finnish) about the produced software
@@ -28,6 +29,7 @@ Projektin kuvaus on saatavilla osoitteesta: [http://www.senecc.fi/projects/proce
 
 Samasta osoitteesta löytyy myös projektin loppuraportti.
 Tässä repositoriossa sisältää kansiot:
+
 - [documents](documents)
 
     sisältää dokumentaatiota tuotetusta ohjelmistosta
