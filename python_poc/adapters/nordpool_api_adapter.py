@@ -243,7 +243,7 @@ class Nordpool:
                 if not column["IsValid"] or not column["IsOfficial"] or column["Value"] == "-":
                     continue
 
-                value = float(column["Value"].replace(",", "."))
+                value = float(column["Value"].replace(",", ".").replace(" ", ""))
                 price_data[area].append({
                     "v": value,
                     "ts": ts
