@@ -146,7 +146,7 @@ class Fingrid:
         """Calculates and returns the start time as a timestamp for the next API query."""
         if self.__store_interval > 0:
             if self.__last_value_dt is not None and not self.__is_prediction:
-                return (self.__last_value_dt + datetime.timedelta(seconds=self.__store_interval)).timestamp()
+                return (self.__last_value_dt + datetime.timedelta(seconds=1)).timestamp()
 
             dt_now = datetime.datetime.now().replace(microsecond=0)
             if self.__last_update is None:
@@ -158,12 +158,12 @@ class Fingrid:
             return dt_start.timestamp()
 
         else:
-            if self.__last_update is None:
+            if self.__last_update is None or self.__last_value_dt is None:
                 return time.time() - self.__time_interval
             elif self.__is_prediction:
                 return time.time()
             else:
-                return self.__last_update + 1
+                return (self.__last_value_dt + datetime.timedelta(seconds=1)).timestamp()
 
     def getData(self):
         """Tries to get new data from the Fingrid API. If new data is found, it is send to the Procem RTL handler and
@@ -174,6 +174,9 @@ class Fingrid:
                 endtime = time.time() + self.__prediction_length
             else:
                 endtime = time.time()
+
+            # add-hoc fix to prevent too fast calls to the Fingrid API due to new rate limit checks
+            time.sleep(5)  # wait 5 seconds before making the query
 
             # get the response from the API
             kwargs = {
@@ -190,24 +193,23 @@ class Fingrid:
                 return False
 
             result_datetime_format = self.__config["result_datetime_format"]
-            data = json.loads(req.text)
+            data = json.loads(req.text).get("data", [])
+            data = sorted(data, key=lambda x: x["startTime"])
 
             values = []
-            first_dt = None
             if self.__is_prediction:
                 self.__last_value_dt = None
 
             for item in data:
                 v = item["value"]
-                time_str = item["start_time"]
+                time_str = item["startTime"]
                 dt = datetime.datetime.strptime(time_str, result_datetime_format)
                 if (self.__last_value_dt is not None and
+                        self.__store_interval > 0 and
                         (dt - self.__last_value_dt).total_seconds() < self.__store_interval):
                     continue
-                else:
+                if self.__last_value_dt is None or dt > self.__last_value_dt:
                     self.__last_value_dt = dt
-                    if first_dt is None:
-                        first_dt = dt
                 ts = int(dt.timestamp() * 1000)
 
                 values.append({"v": v, "ts": ts})

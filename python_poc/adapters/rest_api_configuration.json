@@ -37,7 +37,7 @@
             "name": "FingridCollection"
         },
         "method": "GET",
-        "host": "https://api.fingrid.fi/v1/variable/{variable_id:}/events/json",
+        "host": "https://data.fingrid.fi/api/datasets/{variable_id:}/data",
         "authentication": {
             "type": "header",
             "params": [
@@ -48,10 +48,12 @@
             ]
         },
         "datetime_format": "%Y-%m-%dT%H:%M:%SZ",
-        "result_datetime_format": "%Y-%m-%dT%H:%M:%S%z",
+        "result_datetime_format": "%Y-%m-%dT%H:%M:%S.%f%z",
         "query_params": {
-            "start_time": "{start_time}",
-            "end_time": "{end_time}"
+            "startTime": "{start_time}",
+            "endTime": "{end_time}",
+            "format": "json",
+            "pageSize": "10000"
         },
         "dynamic_params": [
             {
