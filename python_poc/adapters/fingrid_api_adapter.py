@@ -175,8 +175,8 @@ class Fingrid:
             else:
                 endtime = time.time()
 
-            # add-hoc fix to prevent too fast calls to the Fingrid API due to new rate limit checks
-            time.sleep(5)  # wait 5 seconds before making the query
+            # ad-hoc fix to prevent too fast calls to the Fingrid API due to new rate limit checks
+            time.sleep(6)  # wait 6 seconds before making the query => at most 10 queries per minute
 
             # get the response from the API
             kwargs = {
