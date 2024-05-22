@@ -91,15 +91,14 @@
         "write_csv": true,
         "csv_filename": "Hirlam_IDs.csv",
         "method": "GET",
-        "host": "http://data.fmi.fi/fmi-apikey/{api_key:}/wfs",
+        "host": "https://opendata.fmi.fi/wfs",
         "authentication": {
-            "type": "address",
-            "api_key": "<api-key_for_hirlam>"
+            "type": "none"
         },
         "datetime_format": "%Y-%m-%dT%H:%M:%SZ",
         "query_params": {
             "request": "getFeature",
-            "storedquery_id": "fmi::forecast::hirlam::surface::point::multipointcoverage",
+            "storedquery_id": "fmi::forecast::harmonie::surface::point::multipointcoverage",
             "latlon": "{latitude:},{longitude:}",
             "starttime": "{start_time:}",
             "endtime": "{end_time:}",
