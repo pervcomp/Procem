@@ -49,14 +49,26 @@ class SimpleIoTTicketClient:
     datanoderesource = "devices/{}/datanodes"
     telemetryresource = "http-adapter/telemetry/{}/{}"
 
-    def __init__(self, base_url, username, password, devices):
+    def __init__(self, base_url, username, password, version, devices):
         self.__base_url = base_url
         self.__auth = requests.auth.HTTPBasicAuth(username, password)
-        self.__devices = devices  # should be a dictionary with device id as key and device password as value
+        self.__version = version
+        self.__devices = devices  # should be a dictionary with device id as key and {"user": <user>, "pass": <pass>} as value
 
     def getDeviceAuthorization(self, tenant_id, device_id):
         """Returns the authorization for a device."""
-        return requests.auth.HTTPBasicAuth(f"{device_id}@{tenant_id}", self.__devices[device_id])
+        print(device_id, self.__devices)
+        if device_id not in self.__devices:
+            print("No device password found for device", device_id)
+            return None
+        device = self.__devices[device_id]
+        if "user" not in device:
+            print("No device user found for device", device_id)
+            return None
+        if "pass" not in device:
+            print("No device password found for device", device_id)
+            return None
+        return requests.auth.HTTPBasicAuth(f"{device['user']}@{tenant_id}", device["pass"])
 
     def registerDevice(self, device):
         """Registers a device."""
@@ -205,6 +217,11 @@ class SimpleIoTTicketClient:
         return combineReadResponces(responces)
 
     def writeData(self, device_id, jsondata, packet_size=None, considered_packets=None):
+        if self.__version == "new":
+            return self.writeDataNew(device_id, jsondata, packet_size, considered_packets)
+        return self.writeDataOld(device_id, jsondata, packet_size, considered_packets)
+
+    def writeDataOld(self, device_id, jsondata, packet_size=None, considered_packets=None):
         """Writes data to IoT-Ticket and returns a list of responces.
            The jsondata is expected to contain valid data as a list of json objects.
            Using packet_size parameter the data sending can be serialized to smaller packets.
@@ -252,69 +269,79 @@ class SimpleIoTTicketClient:
         else:
             return responces
 
+    def writeDataNew(self, tenant_id, jsondata, packet_size=None, considered_packets=None):
+        """Writes data to IoT-Ticket using the new API version.
+        Returns a list that indicates all sends being successful regardless of whether that was the case or not.
+        The jsondata is expected to contain valid data as a list of json objects.
+        Parameters packet_size and considered_packets will be ignored."""
+        print(f"Starting IoT-TICKET write with new data: {jsondata}")
+        responces = []
 
-def writeDataNew(self, tenant_id, jsondata, packet_size=None, considered_packets=None):
-    """Writes data to IoT-Ticket using the new API version.
-       Returns a list that indicates all sends being successful regardless of whether that was the case or not.
-       The jsondata is expected to contain valid data as a list of json objects.
-       Parameters packet_size and considered_packets will be ignored."""
-    print(f"Starting IoT-TICKET write with new data: {jsondata}")
-    responces = []
-
-    # the devices included in the data
-    device_ids = {
-        item["path"]  # due to add-hoc implementation, the path is used as the device id when using the new API
-        for item in jsondata
-    }
-
-    for device_id in device_ids:
-        print(f"Handling device: {device_id}")
-        device_auth = self.getDeviceAuthorization(tenant_id, device_id)
-
-        # the data for this device
-        device_items = [
-            item
+        # the devices included in the data
+        device_ids = {
+            item["path"]  # due to add-hoc implementation, the path is used as the device id when using the new API
             for item in jsondata
-            if item["path"] == device_id
-        ]
-
-        # the attributes for this device
-        attributes = {
-            item["name"]
-            for item in device_items
-            if item["path"] == device_id
         }
-        print(f"  attributes: {attributes}")
 
-        # formatted data to be sent to IoT-TICKET
-        device_data = {
-            "t": [
-                {
-                    "n": attribute,
-                    "data": [
-                        {
-                            common_utils.to_iso_format_datetime_string(item["ts"]): item["v"]
-                            for item in device_items
-                            if item["name"] == attribute
-                        }
-                    ]
-                }
-                for attribute in attributes
+        for device_id in device_ids:
+            print(f"Handling device: {device_id}")
+            device_auth = self.getDeviceAuthorization(tenant_id, device_id)
+            print(f"  auth: {device_auth}")
+
+            # the data for this device
+            device_items = [
+                item
+                for item in jsondata
+                if item["path"] == device_id
             ]
-        }
 
-        url = self.telemetryresource.format(tenant_id, device_id)
-        try:
-            print("IoT-TICKET send:")
-            print(f"  path: {url}")
-            print(f"  data: {device_data}")
-            req = requests.put(url, json=device_data, auth=device_auth, timeout=30)
-            responces.append(getResponce(req))
-        except requests.exceptions.RequestException as error:
-            error.responces = [None]
-            raise error
+            # the attributes for this device
+            attributes = {
+                item["name"]
+                for item in device_items
+                if item["path"] == device_id
+            }
+            print(f"  attributes: {attributes}")
 
-    return responces
+            # formatted data to be sent to IoT-TICKET
+            device_data = {
+                "t": [
+                    {
+                        "n": attribute,
+                        "data": [
+                            {
+                                common_utils.to_iso_format_datetime_string(item["ts"]): item["v"]
+                                for item in device_items
+                                if item["name"] == attribute
+                            }
+                        ]
+                    }
+                    for attribute in attributes
+                ]
+            }
+
+            url = f"{self.__base_url}/{self.telemetryresource.format(tenant_id, device_id)}"
+            try:
+                print("IoT-TICKET send:")
+                print(f"  path: {url}")
+                print(f"  data: {device_data}")
+                req = requests.put(url, json=device_data, auth=device_auth, timeout=30)
+                print(f"  status: {req.status_code}")
+                print(f"  content: {req.content}")
+                responces.append({
+                    "status_code": req.status_code,
+                    "encoding": req.encoding,
+                    "headers": req.headers,
+                    "url": req.url,
+                    "content": req.text
+                })
+                print(responces)
+            except requests.exceptions.RequestException as error:
+                error.responces = [None]
+                print(f"While trying to send data to IoT-TICKET: {error}")
+                raise error
+
+        return responces
 
 
 def getResponce(req):

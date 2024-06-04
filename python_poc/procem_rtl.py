@@ -490,10 +490,8 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
                   "/", len(iott_buffer), " ", considered_packets, sep="")
 
         try:
-            ticket_write_func = iott_c.writeData if IOTTICKET_VERSION == "old" else iott_c.writeDataNew
-
             # Use the SimpleIoTTicketClient class to avoid having to use datanodesvalue class
-            responces = ticket_write_func(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
+            responces = iott_c.writeData(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
             # Use the received responces to determine which packets need to be resend and the total for written nodes
             (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
                 responces=responces,
@@ -681,7 +679,7 @@ if __name__ == "__main__":
     print(common_utils.getTimeString(), "Reading configuration parameters.")
     jd = common_utils.readConfig(PROCEM_CONF_FILE)
     PROCEM_DEVICEID = jd["deviceid"]
-    IOTTICKET_DEVICES = jd.get("iotticket-devices", IOTTICKET_DEVICES)
+    IOTTICKET_DEVICES = jd.get("devices", IOTTICKET_DEVICES)
     PROCEM_USERNAME = jd["username"]
     PROCEM_PASSWORD = jd["password"]
     PROCEM_BASEURL = jd["baseurl"]
@@ -751,7 +749,7 @@ if __name__ == "__main__":
     threads.append(tdb)
 
     # for handling the data sending to the IoT-Ticket
-    iott_c = iotticket_utils.SimpleIoTTicketClient(PROCEM_BASEURL, PROCEM_USERNAME, PROCEM_PASSWORD, IOTTICKET_DEVICES)
+    iott_c = iotticket_utils.SimpleIoTTicketClient(PROCEM_BASEURL, PROCEM_USERNAME, PROCEM_PASSWORD, IOTTICKET_VERSION, IOTTICKET_DEVICES)
     tiot = threading.Thread(
         target=procemIOTTicketWorker, name="ProcemIOTTicketWorker",
         kwargs={'iott_c': iott_c}, daemon=DAEMON_THREAD_WORKERS)

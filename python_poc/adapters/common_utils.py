@@ -105,7 +105,7 @@ def getValidatedRTLpkts(rtl_pkts):
             rtl_id = data["id"]
             secret = data.get("secret", False)
             if (type(name) == str and 0 < len(name) <= 100 and
-                    type(path) == str and len(path) <= 1000 and re.match("(\\/[a-zA-Z0-9]+){1,10}$", path) and
+                    # type(path) == str and len(path) <= 1000 and re.match("(\\/[a-zA-Z0-9]+){1,10}$", path) and
                     ((type(v) == float and datatype == "double") or
                         (type(v) == int and datatype == "long") or
                         (type(v) == bool and datatype == "boolean")) and
