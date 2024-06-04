@@ -9,6 +9,7 @@
 # Main author(s): Ville Heikkila, Otto Hylli, Pekka Itavuo,
 #                 Teemu Laukkarinen ja Ulla-Talvikki Virta
 
+import datetime
 import json
 import os
 import pathlib
@@ -372,3 +373,12 @@ class BackupFileHandler:
             data_queue.put(None)
 
         return lines
+
+
+def to_iso_format_datetime_string(unix_timestamp_ms: int) -> str:
+    """Returns the given datetime value as ISO 8601 formatted string in UTC timezone."""
+    dt = datetime.datetime.fromtimestamp(unix_timestamp_ms / 1000, datetime.timezone.utc)
+    return (
+        f"{dt.year:04}-{dt.month:02}-{dt.day:02}" +
+        f"T{dt.hour:02}:{dt.minute:02}:{dt.second:02}.{(dt.microsecond // 1000):03}Z"
+    )

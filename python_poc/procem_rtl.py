@@ -87,6 +87,8 @@ PROCEM_DEVICEID = ""
 PROCEM_USERNAME = ""
 PROCEM_PASSWORD = ""
 PROCEM_BASEURL = ""
+IOTTICKET_DEVICES = {}
+IOTTICKET_VERSION = "old"
 
 # the rtl ids that the battery demo program is interested in
 IDS_FOR_BATTERY = set()
@@ -488,8 +490,10 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
                   "/", len(iott_buffer), " ", considered_packets, sep="")
 
         try:
+            ticket_write_func = iott_c.writeData if IOTTICKET_VERSION == "old" else iott_c.writeDataNew
+
             # Use the SimpleIoTTicketClient class to avoid having to use datanodesvalue class
-            responces = iott_c.writeData(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
+            responces = ticket_write_func(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
             # Use the received responces to determine which packets need to be resend and the total for written nodes
             (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
                 responces=responces,
@@ -677,9 +681,13 @@ if __name__ == "__main__":
     print(common_utils.getTimeString(), "Reading configuration parameters.")
     jd = common_utils.readConfig(PROCEM_CONF_FILE)
     PROCEM_DEVICEID = jd["deviceid"]
+    IOTTICKET_DEVICES = jd.get("iotticket-devices", IOTTICKET_DEVICES)
     PROCEM_USERNAME = jd["username"]
     PROCEM_PASSWORD = jd["password"]
     PROCEM_BASEURL = jd["baseurl"]
+    IOTTICKET_VERSION = jd.get("iotticket-version", IOTTICKET_VERSION)
+    if IOTTICKET_VERSION != "new":
+        IOTTICKET_VERSION = "old"  # only "new" and "old" are allowed values
     DB_STORAGE_CHECK = jd.get("db_storage_on", DB_STORAGE_CHECK)
     IOTTICKET_SEND_CHECK = jd.get("iotticket_send_on", IOTTICKET_SEND_CHECK)
     BATTERY_DEMO_CHECK = jd.get("battery_demo_on", BATTERY_DEMO_CHECK)
@@ -699,7 +707,7 @@ if __name__ == "__main__":
         IDS_FOR_BATTERY.add(id)
 
     # create queues for worker threads
-    # maxsize could be infinite, but it is good idea to set maximun size to prevent exhaustion in a case of malfunction.
+    # maxsize could be infinite, but it is good idea to set maximum size to prevent exhaustion in a case of malfunction.
     PROCEM_DB_QUEUE = queue.Queue(maxsize=dbQueueSize)
     PROCEM_IOTTICKET_QUEUE = queue.Queue(maxsize=iotticketQueueSize)
 
@@ -743,7 +751,7 @@ if __name__ == "__main__":
     threads.append(tdb)
 
     # for handling the data sending to the IoT-Ticket
-    iott_c = iotticket_utils.SimpleIoTTicketClient(PROCEM_BASEURL, PROCEM_USERNAME, PROCEM_PASSWORD)
+    iott_c = iotticket_utils.SimpleIoTTicketClient(PROCEM_BASEURL, PROCEM_USERNAME, PROCEM_PASSWORD, IOTTICKET_DEVICES)
     tiot = threading.Thread(
         target=procemIOTTicketWorker, name="ProcemIOTTicketWorker",
         kwargs={'iott_c': iott_c}, daemon=DAEMON_THREAD_WORKERS)
