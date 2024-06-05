@@ -511,6 +511,8 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
                     if len(bad_devices) == 0:
                         extra_wait = 0
                         in_progress = False
+                    else:
+                        try_number += 1
             else:
                 (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
                     responces=responces,
