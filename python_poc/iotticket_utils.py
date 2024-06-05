@@ -57,7 +57,6 @@ class SimpleIoTTicketClient:
 
     def getDeviceAuthorization(self, tenant_id, device_id):
         """Returns the authorization for a device."""
-        print(device_id, self.__devices)
         if device_id not in self.__devices:
             print("No device password found for device", device_id)
             return None
@@ -274,7 +273,6 @@ class SimpleIoTTicketClient:
         Returns a list that indicates all sends being successful regardless of whether that was the case or not.
         The jsondata is expected to contain valid data as a list of json objects.
         Parameters packet_size and considered_packets will be ignored."""
-        print(f"Starting IoT-TICKET write with new data: {jsondata}")
         responces = []
 
         # the devices included in the data
@@ -284,9 +282,7 @@ class SimpleIoTTicketClient:
         }
 
         for device_id in device_ids:
-            print(f"Handling device: {device_id}")
             device_auth = self.getDeviceAuthorization(tenant_id, device_id)
-            print(f"  auth: {device_auth}")
 
             # the data for this device
             device_items = [
@@ -301,13 +297,14 @@ class SimpleIoTTicketClient:
                 for item in device_items
                 if item["path"] == device_id
             }
-            print(f"  attributes: {attributes}")
 
             # formatted data to be sent to IoT-TICKET
             device_data = {
                 "t": [
                     {
                         "n": attribute,
+                        "dt": device_items[0]["type"],
+                        "unit": device_items[0]["unit"],
                         "data": [
                             {
                                 common_utils.to_iso_format_datetime_string(item["ts"]): item["v"]
@@ -322,24 +319,11 @@ class SimpleIoTTicketClient:
 
             url = f"{self.__base_url}/{self.telemetryresource.format(tenant_id, device_id)}"
             try:
-                print("IoT-TICKET send:")
-                print(f"  path: {url}")
-                print(f"  data: {device_data}")
                 req = requests.put(url, json=device_data, auth=device_auth, timeout=30)
-                print(f"  status: {req.status_code}")
-                print(f"  content: {req.content}")
-                responces.append({
-                    "status_code": req.status_code,
-                    "encoding": req.encoding,
-                    "headers": req.headers,
-                    "url": req.url,
-                    "content": req.text
-                })
-                print(responces)
+                responces.append((device_id, req.status_code))
             except requests.exceptions.RequestException as error:
-                error.responces = [None]
+                responces.append = [(device_id, None)]
                 print(f"While trying to send data to IoT-TICKET: {error}")
-                raise error
 
         return responces
 

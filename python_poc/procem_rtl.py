@@ -489,26 +489,45 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
             print(common_utils.getTimeString(), " IoTT Try ", try_number, ": ", confirmed_written,
                   "/", len(iott_buffer), " ", considered_packets, sep="")
 
+        bad_devices = set()
         try:
             # Use the SimpleIoTTicketClient class to avoid having to use datanodesvalue class
             responces = iott_c.writeData(PROCEM_DEVICEID, iott_data, IOTTICKET_MAX_PACKET_SIZE, considered_packets)
             # Use the received responces to determine which packets need to be resend and the total for written nodes
-            (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
-                responces=responces,
-                n_measurements=len(iott_buffer),
-                packet_size=IOTTICKET_MAX_PACKET_SIZE,
-                considered_packets=considered_packets)
-            confirmed_written += total_written
-            if extra_wait_check:
-                extra_wait = 2.0
-            else:
-                extra_wait = 0
+            if IOTTICKET_VERSION == "new":
+                if len(responces) == 0:
+                    print("IoT-TICKET sent no status codes => will try resending the data.")
+                    bad_devices = {[item["path"] for item in iott_data]}
+                    extra_wait = 2.0
+                else:
+                    for device_id, status_code in responces:
+                        if status_code is None or status_code // 100 == 4:
+                            print(f"IoT-TICKET sent status code: {status_code} for {device_id} => will try resending the data.")
+                            bad_devices.add(device_id)
+                            extra_wait = 2.0
+                        else:
+                            confirmed_written += len([item for item in iott_data if item["path"] == device_id])
 
-            # check if some packets need to be resend
-            if len(considered_packets) > 0:
-                try_number += 1
+                    if len(bad_devices) == 0:
+                        extra_wait = 0
+                        in_progress = False
             else:
-                in_progress = False
+                (total_written, extra_wait_check) = iotticket_utils.getResponceInfo(
+                    responces=responces,
+                    n_measurements=len(iott_buffer),
+                    packet_size=IOTTICKET_MAX_PACKET_SIZE,
+                    considered_packets=considered_packets)
+                confirmed_written += total_written
+                if extra_wait_check:
+                    extra_wait = 2.0
+                else:
+                    extra_wait = 0
+
+                # check if some packets need to be resend
+                if len(considered_packets) > 0:
+                    try_number += 1
+                else:
+                    in_progress = False
 
         except Exception as error:
             # print(common_utils.getTimeString(), " ERROR: ", threading.current_thread().name, ", IoTT failed on try ",
@@ -525,7 +544,10 @@ def procemIOTTicketWriterThread(iott_buffer, iott_c, counter, item_counter):
 
     if in_progress:
         # cycle the the items still in considered_packets back to the item queue
-        cycle_count = cycleBadPackets(iott_buffer, considered_packets)
+        if IOTTICKET_VERSION == "new":
+            cycle_count = cycleBadPacketsNew(iott_buffer, bad_devices)
+        else:
+            cycle_count = cycleBadPackets(iott_buffer, considered_packets)
         # for printing the correct number of tries
         try_number -= 1
     else:
@@ -563,6 +585,20 @@ def cycleBadPackets(item_buffer, bad_packets):
     return cycle_count
 
 
+def cycleBadPacketsNew(item_buffer, bad_devices):
+    """Cycles the items that weren't send to the IoT-Ticket back to the item queue."""
+    cycle_count = 0
+
+    for item, cycle_count in item_buffer:
+        if cycle_count > IOTTICKET_MAX_DATA_CYCLES:
+            continue
+        if item["path"] in bad_devices:
+            PROCEM_IOTTICKET_QUEUE.put(getProcemQueueItem([(item, cycle_count + 1)]))
+            cycle_count += 1
+
+    return cycle_count
+
+
 def putItemsToQueue(item_list, buffer_size, item_queue, cycle_limit):
     """Puts items to a queue if they have not yet been cycled too many times.
          item_list = a list of the item tuples (item, cycle_number)
@@ -579,7 +615,7 @@ def putItemsToQueue(item_list, buffer_size, item_queue, cycle_limit):
             # item has been cycled too many times already, just give up on it
             # print(common_utils.getTimeString(), "Giving up on:", item)
             continue
-        item_buffer.append((item, cycle_number))
+        item_buffer.append((item, cycle_number + 1))
         item_count += 1
 
         if len(item_buffer) >= buffer_size:
