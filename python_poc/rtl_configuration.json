@@ -2,8 +2,19 @@
     "username": "<iot-ticket_username>",
     "password": "<iot-ticket_password>",
     "baseurl": "<iot-ticket_rest_api_address>",
-    "deviceid": "<iot-ticket_device_id>",
-    "iotticket-buffer-size": 10,
+    "deviceid": "<iot-ticket_device_id or iot-ticket_tenant_id for new version>",
+    "devices": {
+        "<device_id>": {
+            "user": "<device_username>",
+            "pass": "<device_password>"
+        },
+        "<device_id>": {
+            "user": "<device_username>",
+            "pass": "<device_password>"
+        }
+    },
+    "iotticket-version": "new",
+    "iotticket-buffer-size": 5,
     "iotticket-max-packet-size": 500,
     "iotticket-minimum-delay-s": 0.5,
     "iotticket-maximum-retries": 3,
