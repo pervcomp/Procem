@@ -38,6 +38,23 @@ def isDSTTime(timestamp):
     return time.daylight > 0 and local_time.tm_isdst > 0
 
 
+def legacyFromisoformat(isoformat_str: str) -> datetime.datetime:
+    """Returns the Datetime object that corresponds the ISO formatted string."""
+    legacy_str: str = isoformat_str.replace("Z", "+00:00")
+    dot_index: int = legacy_str.find(".")
+    if dot_index != -1:
+        plus_index: int = legacy_str.find("+", dot_index + 1)
+        minus_index: int = legacy_str.find("-", dot_index + 1)
+        timezone_index: int = max(plus_index, minus_index)
+        if timezone_index > dot_index:
+            legacy_str = (
+                legacy_str[:dot_index+1] +
+                legacy_str[dot_index+1:min(timezone_index, dot_index+7)] +
+                legacy_str[timezone_index:]
+            )
+    return datetime.datetime.fromisoformat(legacy_str)
+
+
 class Nordpool:
     """Class for receiving and handling data from Nord Pool."""
     def __init__(self, params, data_queue):
@@ -154,7 +171,7 @@ class Nordpool:
 
         try:
             if self.__last_query_date is None:
-                timestamp = datetime.datetime.fromisoformat(self.__start_date).timestamp()
+                timestamp = legacyFromisoformat(self.__start_date).timestamp()
             else:
                 timestamp = (self.__last_query_date + datetime.timedelta(days=1)).timestamp()
             kwargs = {
@@ -191,7 +208,7 @@ class Nordpool:
 
                 for area, price in prices.items():
                     received_prices[area].append({
-                        "ts": int(datetime.datetime.fromisoformat(start_time).timestamp() * 1000),
+                        "ts": int(legacyFromisoformat(start_time).timestamp() * 1000),
                         "v": price
                     })
 
@@ -199,7 +216,7 @@ class Nordpool:
             if update_time_str is None:
                 print(common_utils.getTimeString(), " Nord Pool: No update time found.")
                 return False
-            update_timestamp = datetime.datetime.fromisoformat(update_time_str).timestamp()
+            update_timestamp = legacyFromisoformat(update_time_str).timestamp()
 
             if datetime.date.fromtimestamp(timestamp) in self.__from_dst_to_normal_days:
                 hour_count = 25
