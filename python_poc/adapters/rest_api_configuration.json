@@ -7,15 +7,17 @@
         "write_csv": true,
         "method": "GET",
         "csv_filename": "NordPool_IDs.csv",
-        "host": "https://www.nordpoolgroup.com/api/marketdata/page/10",
+        "host": "https://dataportal-api.nordpoolgroup.com/api/DayAheadPrices",
         "authentication": {
             "type": "none"
         },
-        "datetime_format": "%d-%m-%Y",
+        "datetime_format": "%Y-%m-%d",
         "result_datetime_format": "%Y-%m-%dT%H:%M:%S.%f",
         "query_params": {
             "currency": "{currency:}",
-            "endDate": "{date:}"
+            "date": "{date:}",
+            "market": "{market:}",
+            "deliveryArea": "{deliveryArea:}"
         },
         "dynamic_params": [
             {
@@ -25,6 +27,14 @@
             {
                 "name": "date",
                 "type": "timestamp"
+            },
+            {
+                "name": "market",
+                "default": "DayAhead"
+            },
+            {
+                "name": "deliveryArea",
+                "default": "FI"
             }
         ],
         "long_names": {

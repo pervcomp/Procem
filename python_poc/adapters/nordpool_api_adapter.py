@@ -12,6 +12,7 @@
 import datetime
 import json
 import time
+from typing import Dict, List, Tuple
 
 try:
     import adapters.common_utils as common_utils
@@ -51,9 +52,32 @@ class Nordpool:
         self.__path = params.get("iot_ticket_path_base", "/{area_long:}")
         self.__name = params.get("iot_ticket_name_base", "{area:}_price")
         self.__desc = params.get("description", "{area_long:} price")
+        self.__start_date = params.get("start_date", str(datetime.date.today()))
 
         # TODO: handle the clock changes better
-        self.__from_dst_to_normal_days = [datetime.date(2018, 10, 28)]
+        self.__from_dst_to_normal_days = [
+            datetime.date(2018, 10, 28),
+            datetime.date(2019, 10, 27),
+            datetime.date(2020, 10, 25),
+            datetime.date(2021, 10, 31),
+            datetime.date(2022, 10, 30),
+            datetime.date(2023, 10, 29),
+            datetime.date(2024, 10, 27),
+            datetime.date(2025, 10, 26),
+            datetime.date(2026, 10, 25),
+            datetime.date(2027, 10, 31)
+        ]
+        self.__from_normal_to_dst_days = [
+            datetime.date(2019, 3, 31),
+            datetime.date(2020, 3, 29),
+            datetime.date(2021, 3, 28),
+            datetime.date(2022, 3, 27),
+            datetime.date(2023, 3, 26),
+            datetime.date(2024, 3, 31),
+            datetime.date(2025, 3, 30),
+            datetime.date(2026, 3, 29),
+            datetime.date(2027, 3, 28)
+        ]
         self.__clock_change_hour_utc = 0
 
         self.__data_info = self.getNordpoolInfo()
@@ -65,19 +89,6 @@ class Nordpool:
     def getNordpoolInfo(self):
         """Loads the data information using the given configurations."""
         try:
-            # determine the unit by making a request to the Nord Pool API
-            kwargs = {
-                "config": self.__config,
-                "currency": self.__currency,
-                "date": time.time()
-            }
-            req = rest_utils.runAPIQuery(**kwargs)
-            if req.status_code == rest_utils.STATUS_OK:
-                js = json.loads(req.text)
-                unit = js["data"]["Units"][0]
-            else:
-                unit = ""
-
             # collect the data information for each considered area.
             info = {}
             count = 0
@@ -89,7 +100,7 @@ class Nordpool:
                 info[area]["rtl_id"] = self.__rtl_id_base + count
                 info[area]["name"] = self.__name.format(area=area)
                 info[area]["path"] = self.__path.format(area_long=area_long)
-                info[area]["unit"] = unit
+                info[area]["unit"] =  "EUR/MWh"
                 info[area]["datatype"] = "float"
                 info[area]["confidential"] = False
                 info[area]["description"] = self.__desc.format(area_long=area_long)
@@ -143,13 +154,14 @@ class Nordpool:
 
         try:
             if self.__last_query_date is None:
-                timestamp = time.time()
+                timestamp = datetime.datetime.fromisoformat(self.__start_date).timestamp()
             else:
                 timestamp = (self.__last_query_date + datetime.timedelta(days=1)).timestamp()
             kwargs = {
                 "config": self.__config,
                 "currency": self.__currency,
-                "date": timestamp
+                "date": timestamp,
+                "deliveryArea": ",".join(self.__areas)
             }
             req = rest_utils.runAPIQuery(**kwargs)
 
@@ -163,34 +175,45 @@ class Nordpool:
                 print(common_utils.getTimeString(), "Nord Pool, received currency:", js["currency"])
                 return False
 
-            data = js["data"]
+            data = js.get("multiAreaEntries", [])
 
-            # use the time zone field in the response to get the proper timestamps
-            # NOTE: changes to hardcoded timezone since the website started giving wrong timezone on 2018-10-28
-            time_zone_info = 1
-            # time_zone_info = int(data["TimeZoneInformation"])
-            if isDSTTime(timestamp) or datetime.date.fromtimestamp(timestamp) in self.__from_dst_to_normal_days:
-                time_zone_info += 1
-            timezone = datetime.timezone(datetime.timedelta(hours=time_zone_info))
+            received_prices: Dict[str, List[Dict[int, float]]] = {
+                area: []
+                for area in self.__areas
+            }
+            for entry in data:
+                start_time: str | None = entry.get("deliveryStart", None)
+                if start_time is None:
+                    continue
+                prices: Dict[str, float] = entry.get("entryPerArea", {})
+                if set(prices.keys()) != set(self.__areas):
+                    continue
 
-            result_datetime_format = self.__config["result_datetime_format"]
-            update_time_str = timeToMicrosecondFormat(data["DateUpdated"])
-            update_date = datetime.datetime.strptime(update_time_str, result_datetime_format).replace(tzinfo=timezone)
-            update_timestamp = update_date.timestamp()
+                for area, price in prices.items():
+                    received_prices[area].append({
+                        "ts": int(datetime.datetime.fromisoformat(start_time).timestamp() * 1000),
+                        "v": price
+                    })
 
-            price_data = self.getPriceData(data["Rows"], timezone)
-            received_prices = [len(prices) for area, prices in price_data.items()]
+            update_time_str = js.get("updatedAt", None)
+            if update_time_str is None:
+                print(common_utils.getTimeString(), " Nord Pool: No update time found.")
+                return False
+            update_timestamp = datetime.datetime.fromisoformat(update_time_str).timestamp()
 
             if datetime.date.fromtimestamp(timestamp) in self.__from_dst_to_normal_days:
                 hour_count = 25
+            elif datetime.date.fromtimestamp(timestamp) in self.__from_normal_to_dst_days:
+                hour_count = 23
             else:
                 hour_count = 24
-            if max(received_prices) != hour_count or min(received_prices) != hour_count:
-                print(common_utils.getTimeString(), " Nord Pool: ", max(received_prices), "/", hour_count,
+            received_prices_count = len(received_prices[list(received_prices.keys())[0]])
+            if received_prices_count != hour_count:
+                print(common_utils.getTimeString(), " Nord Pool: ", received_prices_count, "/", hour_count,
                       " prices received.", sep="")
                 return False
 
-            self.sendDataToProcem(price_data)
+            self.sendDataToProcem(received_prices)
 
             self.__last_update = update_timestamp
             self.__last_query_date = datetime.datetime.fromtimestamp(timestamp).replace(
@@ -198,7 +221,7 @@ class Nordpool:
             return True
 
         except Exception as error:
-            print(common_utils.getTimeString(), "Nord Pool:", error)
+            print(common_utils.getTimeString(), "Nord Pool:", type(error).__name__, error)
             return False
 
     def getWaitingTime(self):
