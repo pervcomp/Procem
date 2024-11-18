@@ -47,11 +47,11 @@ def legacyFromisoformat(isoformat_str: str) -> datetime.datetime:
         minus_index: int = legacy_str.find("-", dot_index + 1)
         timezone_index: int = max(plus_index, minus_index)
         if timezone_index > dot_index:
-            legacy_str = (
-                legacy_str[:dot_index+1] +
-                legacy_str[dot_index+1:min(timezone_index, dot_index+7)] +
+            legacy_str = "".join([
+                legacy_str[:dot_index+1],
+                f"{legacy_str[dot_index+1:min(timezone_index, dot_index+7)]:0>6}",
                 legacy_str[timezone_index:]
-            )
+            ])
     return datetime.datetime.fromisoformat(legacy_str)
 
 
