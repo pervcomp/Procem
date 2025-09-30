@@ -96,6 +96,7 @@ class Nordpool:
             datetime.date(2027, 3, 28)
         ]
         self.__clock_change_hour_utc = 0
+        self.__hour_interval_end_date = datetime.date(2025, 9, 30)
 
         self.__data_info = self.getNordpoolInfo()
         self.__data_queue = data_queue
@@ -165,6 +166,14 @@ class Nordpool:
         except:
             print(common_utils.getTimeString(), "Error while writing Nord Pool csv file.")
 
+    def getDataMultiplier(self, timestamp):
+        """Checks if the prices are given in 1 hour or 15 min intervals for the given date.
+           Returns 1, if the given timestamp corresponds to date 2025-09-30 or earlier (1 hour intervals).
+           Otherwise, returns 4 (15 min intervals)."""
+        if datetime.date.fromtimestamp(timestamp) <= self.__hour_interval_end_date:
+            return 1
+        return 4
+
     def getData(self):
         """Tries to get new data from the Nord Pool API. If new data is found, it is send to the Procem RTL handler and
            the function returns True. Otherwise, the function returns False."""
@@ -219,14 +228,14 @@ class Nordpool:
             update_timestamp = legacyFromisoformat(update_time_str).timestamp()
 
             if datetime.date.fromtimestamp(timestamp) in self.__from_dst_to_normal_days:
-                hour_count = 25
+                data_point_count = 25 * self.getDataMultiplier(timestamp)
             elif datetime.date.fromtimestamp(timestamp) in self.__from_normal_to_dst_days:
-                hour_count = 23
+                data_point_count = 23 * self.getDataMultiplier(timestamp)
             else:
-                hour_count = 24
+                data_point_count = 24 * self.getDataMultiplier(timestamp)
             received_prices_count = len(received_prices[list(received_prices.keys())[0]])
-            if received_prices_count != hour_count:
-                print(common_utils.getTimeString(), " Nord Pool: ", received_prices_count, "/", hour_count,
+            if received_prices_count != data_point_count:
+                print(common_utils.getTimeString(), " Nord Pool: ", received_prices_count, "/", data_point_count,
                       " prices received.", sep="")
                 return False
 
