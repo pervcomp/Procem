@@ -47,7 +47,7 @@
     "web3": "^4.6.0",
     "webpack": "^5.104.1",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^5.2.1"
+    "webpack-dev-server": "^5.2.6"
   },
   "scripts": {
     "test": "truffle test",
